@@ -4,8 +4,9 @@ import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
 import com.google.gson.reflect.TypeToken;
 import com.laboratorio.clientapilibrary.ApiClient;
-import com.laboratorio.clientapilibrary.impl.ApiClientImpl;
+import com.laboratorio.clientapilibrary.model.ApiMethodType;
 import com.laboratorio.clientapilibrary.model.ApiRequest;
+import com.laboratorio.clientapilibrary.model.ApiResponse;
 import com.laboratorio.parlerapiinterface.exception.ParlerApiException;
 import com.laboratorio.parlerapiinterface.model.ParlerAccount;
 import com.laboratorio.parlerapiinterface.model.ParlerAccountList;
@@ -22,9 +23,9 @@ import org.apache.logging.log4j.Logger;
 /**
  *
  * @author Rafael
- * @version 1.0
+ * @version 1.1
  * @created 30/09/2024
- * @updated 01/10/2024
+ * @updated 06/10/2024
  */
 public class ParlerBaseApi {
     protected static final Logger log = LogManager.getLogger(ParlerBaseApi.class);
@@ -35,7 +36,7 @@ public class ParlerBaseApi {
 
     public ParlerBaseApi() {
         this.apiConfig = ParlerApiConfig.getInstance();
-        this.client = new ApiClientImpl();
+        this.client = new ApiClient();
         this.gson = new Gson();
     }
 
@@ -59,13 +60,13 @@ public class ParlerBaseApi {
             String requestJson = this.gson.toJson(idsRequest);
                     
             String uri = endpoint;
-            ApiRequest request = new ApiRequest(uri, okStatus, requestJson);
+            ApiRequest request = new ApiRequest(uri, okStatus, ApiMethodType.POST, requestJson);
             request.addApiHeader("Content-Type", "application/json");
             request.addApiHeader("Authorization", "Bearer " + accessToken);
             
-            String jsonStr = this.client.executePostRequest(request);
+            ApiResponse response = this.client.executeApiRequest(request);
             
-            List<ParlerGetAccountsByIdResponse> accountsByIdResponse = this.gson.fromJson(jsonStr, new TypeToken<List<ParlerGetAccountsByIdResponse>>(){}.getType());
+            List<ParlerGetAccountsByIdResponse> accountsByIdResponse = this.gson.fromJson(response.getResponseStr(), new TypeToken<List<ParlerGetAccountsByIdResponse>>(){}.getType());
             if (accountsByIdResponse.isEmpty()) {
                 throw new ParlerApiException(ParlerAccountApiImpl.class.getName(), "Se ha recibido una respuesta vacía consultando usuarios por Id");
             }
@@ -82,16 +83,16 @@ public class ParlerBaseApi {
     // Función que devuelve una página de seguidores o seguidos de una cuenta
     private ParlerAccountListResponse getAccountPage(String uri, int okStatus, String posicionInicial) {
         try {
-            ApiRequest request = new ApiRequest(uri, okStatus);
+            ApiRequest request = new ApiRequest(uri, okStatus, ApiMethodType.GET);
             if (posicionInicial != null) {
                 request.addApiPathParam("cursor", posicionInicial);
             }
             request.addApiHeader("Content-Type", "application/json");
             request.addApiHeader("Authorization", "Bearer " + accessToken);
             
-            String jsonStr = this.client.executeGetRequest(request);
+            ApiResponse response = this.client.executeApiRequest(request);
             
-            return this.gson.fromJson(jsonStr, ParlerAccountListResponse.class);
+            return this.gson.fromJson(response.getResponseStr(), ParlerAccountListResponse.class);
         } catch (JsonSyntaxException e) {
             logException(e);
             throw e;

@@ -1,7 +1,9 @@
 package com.laboratorio.parlerapiinterface.impl;
 
 import com.google.gson.JsonSyntaxException;
+import com.laboratorio.clientapilibrary.model.ApiMethodType;
 import com.laboratorio.clientapilibrary.model.ApiRequest;
+import com.laboratorio.clientapilibrary.model.ApiResponse;
 import com.laboratorio.parlerapiinterface.ParlerNotificationApi;
 import com.laboratorio.parlerapiinterface.exception.ParlerApiException;
 import com.laboratorio.parlerapiinterface.model.ParlerNotification;
@@ -13,9 +15,9 @@ import java.util.stream.Collectors;
 /**
  *
  * @author Rafael
- * @version 1.0
+ * @version 1.1
  * @created 02/10/2024
- * @updated 02/10/2024
+ * @updated 06/10/2024
  */
 public class ParlerNotificationApiImpl extends ParlerBaseApi implements ParlerNotificationApi {
     public ParlerNotificationApiImpl(String accessToken) {
@@ -31,7 +33,7 @@ public class ParlerNotificationApiImpl extends ParlerBaseApi implements ParlerNo
     // Función que devuelve una página de notificaciones de una cuenta
     private ParlerNotificationsResponse getNotificationPage(String uri, int okStatus, String posicionInicial) {
         try {
-            ApiRequest request = new ApiRequest(uri, okStatus);
+            ApiRequest request = new ApiRequest(uri, okStatus, ApiMethodType.GET);
             if (posicionInicial != null) {
                 request.addApiPathParam("cursor", posicionInicial);
             }
@@ -39,9 +41,9 @@ public class ParlerNotificationApiImpl extends ParlerBaseApi implements ParlerNo
             request.addApiHeader("Content-Type", "application/json");
             request.addApiHeader("Authorization", "Bearer " + this.accessToken);
             
-            String jsonStr = this.client.executeGetRequest(request);
+            ApiResponse response = this.client.executeApiRequest(request);
                         
-            return this.gson.fromJson(jsonStr, ParlerNotificationsResponse.class);
+            return this.gson.fromJson(response.getResponseStr(), ParlerNotificationsResponse.class);
         } catch (JsonSyntaxException e) {
             logException(e);
             throw e;

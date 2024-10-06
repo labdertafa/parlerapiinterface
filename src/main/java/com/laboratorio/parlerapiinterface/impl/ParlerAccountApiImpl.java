@@ -1,7 +1,9 @@
 package com.laboratorio.parlerapiinterface.impl;
 
 import com.google.gson.JsonSyntaxException;
+import com.laboratorio.clientapilibrary.model.ApiMethodType;
 import com.laboratorio.clientapilibrary.model.ApiRequest;
+import com.laboratorio.clientapilibrary.model.ApiResponse;
 import com.laboratorio.parlerapiinterface.ParlerAccountApi;
 import com.laboratorio.parlerapiinterface.exception.ParlerApiException;
 import com.laboratorio.parlerapiinterface.model.ParlerAccount;
@@ -14,9 +16,9 @@ import java.util.List;
 /**
  *
  * @author Rafael
- * @version 1.0
+ * @version 1.1
  * @created 30/09/2024
- * @updated 01/10/2024
+ * @updated 06/10/2024
  */
 public class ParlerAccountApiImpl extends ParlerBaseApi implements ParlerAccountApi {
     public ParlerAccountApiImpl(String accessToken) {
@@ -31,15 +33,15 @@ public class ParlerAccountApiImpl extends ParlerBaseApi implements ParlerAccount
         
         try {
             String uri = endpoint + "/" + username;
-            ApiRequest request = new ApiRequest(uri, okStatus);
+            ApiRequest request = new ApiRequest(uri, okStatus, ApiMethodType.GET);
             request.addApiHeader("Content-Type", "application/json");
             request.addApiHeader("Authorization", "Bearer " + accessToken);
             
-            String jsonStr = this.client.executeGetRequest(request);
+            ApiResponse response = this.client.executeApiRequest(request);
             
-            ParlerProfileResonse response =  this.gson.fromJson(jsonStr, ParlerProfileResonse.class);
+            ParlerProfileResonse profileResonse =  this.gson.fromJson(response.getResponseStr(), ParlerProfileResonse.class);
             
-            return response.getData();
+            return profileResonse.getData();
         } catch (JsonSyntaxException e) {
             logException(e);
             throw e;
@@ -104,14 +106,14 @@ public class ParlerAccountApiImpl extends ParlerBaseApi implements ParlerAccount
         try {
             String uri = endpoint + "/" + username + "/" + complementoUrl;
             
-            ApiRequest request = new ApiRequest(uri, okStatus);
+            ApiRequest request = new ApiRequest(uri, okStatus, ApiMethodType.PUT);
             request.addApiHeader("Content-Type", "application/json");
             request.addApiHeader("Authorization", "Bearer " + this.accessToken);
             
-            String jsonStr = this.client.executePutRequest(request);
-            ParlerActionResponse response = this.gson.fromJson(jsonStr, ParlerActionResponse.class);
+            ApiResponse response = this.client.executeApiRequest(request);
+            ParlerActionResponse actionResponse = this.gson.fromJson(response.getResponseStr(), ParlerActionResponse.class);
             
-            return response.isSuccess();
+            return actionResponse.isSuccess();
         } catch (JsonSyntaxException e) {
             logException(e);
             throw e;
@@ -129,14 +131,14 @@ public class ParlerAccountApiImpl extends ParlerBaseApi implements ParlerAccount
         try {
             String uri = endpoint + "/" + username + "/" + complementoUrl;
 
-            ApiRequest request = new ApiRequest(uri, okStatus);
+            ApiRequest request = new ApiRequest(uri, okStatus, ApiMethodType.DELETE);
             request.addApiHeader("Content-Type", "application/json");
             request.addApiHeader("Authorization", "Bearer " + this.accessToken);
             
-            String jsonStr = this.client.executeDeleteRequest(request);
-            ParlerActionResponse response = this.gson.fromJson(jsonStr, ParlerActionResponse.class);
+            ApiResponse response = this.client.executeApiRequest(request);
+            ParlerActionResponse actionResponse = this.gson.fromJson(response.getResponseStr(), ParlerActionResponse.class);
             
-            return response.isSuccess();
+            return actionResponse.isSuccess();
         } catch (JsonSyntaxException e) {
             logException(e);
             throw e;

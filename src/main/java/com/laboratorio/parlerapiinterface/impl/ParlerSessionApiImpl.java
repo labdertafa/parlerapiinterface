@@ -1,7 +1,9 @@
 package com.laboratorio.parlerapiinterface.impl;
 
 import com.google.gson.JsonSyntaxException;
+import com.laboratorio.clientapilibrary.model.ApiMethodType;
 import com.laboratorio.clientapilibrary.model.ApiRequest;
+import com.laboratorio.clientapilibrary.model.ApiResponse;
 import com.laboratorio.clientapilibrary.utils.MailChecker;
 import com.laboratorio.parlerapiinterface.ParlerSessionApi;
 import com.laboratorio.parlerapiinterface.exception.ParlerApiException;
@@ -13,9 +15,9 @@ import com.laboratorio.parlerapiinterface.model.response.ParlerMagicLinkResponse
 /**
  *
  * @author Rafael
- * @version 1.0
+ * @version 1.1
  * @created 30/09/2024
- * @updated 30/09/2024
+ * @updated 06/10/2024
  */
 public class ParlerSessionApiImpl extends ParlerBaseApi implements ParlerSessionApi {
     private final String userEmail;
@@ -38,16 +40,16 @@ public class ParlerSessionApiImpl extends ParlerBaseApi implements ParlerSession
             String requestJson = this.gson.toJson(magicLinkRequest);
             
             String uri = endpoint;
-            ApiRequest request = new ApiRequest(uri, okStatus, requestJson);
+            ApiRequest request = new ApiRequest(uri, okStatus, ApiMethodType.POST, requestJson);
             
-            String jsonStr = this.client.executePostRequest(request);
-            log.debug("JSON: " + jsonStr);
-            ParlerMagicLinkResponse response = this.gson.fromJson(jsonStr, ParlerMagicLinkResponse.class);
-            if (!response.getMessage().equals(correctResponse)) {
+            ApiResponse response = this.client.executeApiRequest(request);
+            log.debug("Respuesta magic link: " + response.getResponseStr());
+            ParlerMagicLinkResponse magicLinkResponse = this.gson.fromJson(response.getResponseStr(), ParlerMagicLinkResponse.class);
+            if (!magicLinkResponse.getMessage().equals(correctResponse)) {
                 throw new ParlerApiException(ParlerSessionApiImpl.class.getName(), "Se ha producido enviando el magic link al correo " + this.userEmail);
             }
             
-            return response;
+            return magicLinkResponse;
         } catch (JsonSyntaxException e) {
             logException(e);
             throw e;
@@ -66,12 +68,12 @@ public class ParlerSessionApiImpl extends ParlerBaseApi implements ParlerSession
             String requestJson = this.gson.toJson(loginRequest);
             
             String uri = endpoint;
-            ApiRequest request = new ApiRequest(uri, okStatus, requestJson);
+            ApiRequest request = new ApiRequest(uri, okStatus, ApiMethodType.POST, requestJson);
             
-            String jsonStr = this.client.executePostRequest(request);
-            log.debug("JSON: " + jsonStr);
+            ApiResponse response = this.client.executeApiRequest(request);
+            log.info("Respuesta de authenticateUser: " + response.getResponseStr());
             
-            ParlerSession newSession =  this.gson.fromJson(jsonStr, ParlerSession.class);
+            ParlerSession newSession =  this.gson.fromJson(response.getResponseStr(), ParlerSession.class);
             this.setAccessToken(newSession.getAccess_token());
             
             return newSession;
@@ -86,11 +88,11 @@ public class ParlerSessionApiImpl extends ParlerBaseApi implements ParlerSession
     @Override
     public ParlerSession authenticateUser() {
         try {
-            ParlerMagicLinkResponse magicLinkResponse = this.sendMagicLink();
+            this.sendMagicLink();
             
             // Esperar la llegada del correo
             try {
-                Thread.sleep(30000);
+                Thread.sleep(60000);
             } catch (Exception e) {
                 log.warn("No se pudo completar el tiempo de espera del email: " + e.getMessage());
             }
@@ -119,6 +121,7 @@ public class ParlerSessionApiImpl extends ParlerBaseApi implements ParlerSession
         return code;
     }
     
+    @Override
     public int checkParlerMagicLinkEmail() {
         String titulo = this.apiConfig.getProperty("parler_email_title");
         String contenido = MailChecker.getFirtMailByTitle(this.userEmail, this.password, titulo);
