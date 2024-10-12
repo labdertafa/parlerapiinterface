@@ -24,13 +24,14 @@ import com.laboratorio.parlerapiinterface.model.response.ParlerStatusDetailsResp
 import com.laboratorio.parlerapiinterface.model.response.ParlerTimeLineResponse;
 import java.io.File;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  *
  * @author Rafael
  * @version 1.2
  * @created 01/10/2024
- * @updated 07/10/2024
+ * @updated 12/10/2024
  */
 public class ParlerStatusApiImpl extends ParlerBaseApi implements ParlerStatusApi {
     public ParlerStatusApiImpl(String accessToken) {
@@ -230,7 +231,7 @@ public class ParlerStatusApiImpl extends ParlerBaseApi implements ParlerStatusAp
     }
 
     @Override
-    public List<ParlerStatus> getGlobalTimeline(List<String> statusIds) {
+    public List<ParlerStatus> getStatusDetails(List<String> statusIds) {
         String endpoint = this.apiConfig.getProperty("getStatusDetails_endpoint");
         int okStatus = Integer.parseInt(this.apiConfig.getProperty("getStatusDetails_ok_status"));
         
@@ -254,6 +255,21 @@ public class ParlerStatusApiImpl extends ParlerBaseApi implements ParlerStatusAp
             throw e;
         } catch (Exception e) {
             throw new ParlerApiException(ParlerStatusApiImpl.class.getName(), e.getMessage());
+        }
+    }
+
+    @Override
+    public List<ParlerStatus> getGlobalTimeline(int quantity) {
+        try {
+            List<ParlerStatusHeader> headers = this.getGlobalTimeLineHeaders(quantity);
+            
+            List<String> ulids = headers.stream()
+                .map(h -> h.getUlid())
+                .collect(Collectors.toList());
+        
+            return this.getStatusDetails(ulids);
+        } catch (Exception e) {
+            throw e;
         }
     }
 }

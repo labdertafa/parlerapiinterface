@@ -22,7 +22,7 @@ import org.junit.jupiter.api.TestMethodOrder;
  * @author Rafael
  * @version 1.1
  * @created 01/10/2024
- * @updated 07/10/2024
+ * @updated 12/10/2024
  */
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
@@ -99,7 +99,7 @@ public class ParlerStatusApiTest {
     
     @Test
     public void getGlobalTimeline() {
-        int quantity = 20;
+        int quantity = 50;
         
         List<ParlerStatusHeader> headers = statusApi.getGlobalTimeLineHeaders(quantity);
         assertEquals(quantity, headers.size());
@@ -108,7 +108,7 @@ public class ParlerStatusApiTest {
                 .map(h -> h.getUlid())
                 .collect(Collectors.toList());
         
-        List<ParlerStatus> statuses = statusApi.getGlobalTimeline(ulids);
+        List<ParlerStatus> statuses = statusApi.getStatusDetails(ulids);
         int i = 0;
         for (ParlerStatus status : statuses) {
             assertEquals(ulids.get(i), status.getId());
