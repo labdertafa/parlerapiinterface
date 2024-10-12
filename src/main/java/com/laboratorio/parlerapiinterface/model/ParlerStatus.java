@@ -28,8 +28,6 @@ public class ParlerStatus {
     ParlerStatusUser user;
     private String postType;
     private String title;
-    private List<String> images;
-    private List<String> videos;
     private boolean isRepost;
     private boolean isRepostWithComment;
     private String embedUrl;
@@ -41,4 +39,9 @@ public class ParlerStatus {
     private boolean isHidden;
     private boolean isProcessing;
     private ParlerPostEngagement postEngagement;
+
+    @Override
+    public String toString() {
+        return "ParlerStatus{" + "id=" + id + ", rootUlid=" + rootUlid + ", parentUlid=" + parentUlid + ", grandparentUlid=" + grandparentUlid + ", isSensitive=" + isSensitive + ", isTrolling=" + isTrolling + ", body=" + body + ", detectedLanguage=" + detectedLanguage + ", username=" + username + ", user=" + user + ", postType=" + postType + ", title=" + title + ", isRepost=" + isRepost + ", isRepostWithComment=" + isRepostWithComment + ", embedUrl=" + embedUrl + ", groupName=" + groupName + ", groupId=" + groupId + ", createdAt=" + createdAt + ", updatedAt=" + updatedAt + ", isDeleted=" + isDeleted + ", isHidden=" + isHidden + ", isProcessing=" + isProcessing + ", postEngagement=" + postEngagement + '}';
+    }
 }

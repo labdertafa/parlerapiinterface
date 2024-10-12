@@ -9,22 +9,28 @@ import com.laboratorio.clientapilibrary.utils.ImageMetadata;
 import com.laboratorio.clientapilibrary.utils.PostUtils;
 import com.laboratorio.parlerapiinterface.ParlerStatusApi;
 import com.laboratorio.parlerapiinterface.exception.ParlerApiException;
+import static com.laboratorio.parlerapiinterface.impl.ParlerBaseApi.log;
 import com.laboratorio.parlerapiinterface.model.ParlerStatus;
+import com.laboratorio.parlerapiinterface.model.ParlerStatusHeader;
 import com.laboratorio.parlerapiinterface.model.request.ParlerGetImageUrlRequest;
 import com.laboratorio.parlerapiinterface.model.request.ParlerRegisterUploadRequest;
+import com.laboratorio.parlerapiinterface.model.request.ParlerStatusDetailsRequest;
 import com.laboratorio.parlerapiinterface.model.request.ParlerStatusRequest;
 import com.laboratorio.parlerapiinterface.model.response.ParlerActionResponse;
 import com.laboratorio.parlerapiinterface.model.response.ParlerImageUploadResponse;
 import com.laboratorio.parlerapiinterface.model.response.ParlerPostResponse;
 import com.laboratorio.parlerapiinterface.model.response.ParlerRegisterUploadResponse;
+import com.laboratorio.parlerapiinterface.model.response.ParlerStatusDetailsResponse;
+import com.laboratorio.parlerapiinterface.model.response.ParlerTimeLineResponse;
 import java.io.File;
+import java.util.List;
 
 /**
  *
  * @author Rafael
- * @version 1.1
+ * @version 1.2
  * @created 01/10/2024
- * @updated 06/10/2024
+ * @updated 07/10/2024
  */
 public class ParlerStatusApiImpl extends ParlerBaseApi implements ParlerStatusApi {
     public ParlerStatusApiImpl(String accessToken) {
@@ -156,6 +162,93 @@ public class ParlerStatusApiImpl extends ParlerBaseApi implements ParlerStatusAp
             ParlerActionResponse actionResponse = this.gson.fromJson(response.getResponseStr(), ParlerActionResponse.class);
             
             return actionResponse.isSuccess();
+        } catch (JsonSyntaxException e) {
+            logException(e);
+            throw e;
+        } catch (Exception e) {
+            throw new ParlerApiException(ParlerStatusApiImpl.class.getName(), e.getMessage());
+        }
+    }
+    
+    // Función que devuelve una página de cabeceras de estados de un timeline
+    private ParlerTimeLineResponse getTimelinePage(String uri, int okStatus, String posicionInicial) {
+        try {
+            ApiRequest request = new ApiRequest(uri, okStatus, ApiMethodType.POST);
+            if (posicionInicial != null) {
+                request.addApiPathParam("cursor", posicionInicial);
+            }
+            
+            request.addApiHeader("Content-Type", "application/json");
+            request.addApiHeader("Authorization", "Bearer " + this.accessToken);
+            
+            ApiResponse response = this.client.executeApiRequest(request);
+                        
+            return this.gson.fromJson(response.getResponseStr(), ParlerTimeLineResponse.class);
+        } catch (JsonSyntaxException e) {
+            logException(e);
+            throw e;
+        } catch (Exception e) {
+            throw new ParlerApiException(ParlerNotificationApiImpl.class.getName(), e.getMessage());
+        }
+    }
+
+    @Override
+    public List<ParlerStatusHeader> getGlobalTimeLineHeaders(int quantity) {
+        String endpoint = this.apiConfig.getProperty("getGlobalTimeLineHeaders_endpoint");
+        int okStatus = Integer.parseInt(this.apiConfig.getProperty("getGlobalTimeLineHeaders_ok_status"));
+        
+        List<ParlerStatusHeader> headers = null;
+        boolean continuar = true;
+        String cursor = null;
+        
+        try {
+            String uri = endpoint;
+            
+            do {
+                ParlerTimeLineResponse timeLineResponse = this.getTimelinePage(uri, okStatus, cursor);
+                if (headers == null) {
+                    headers = timeLineResponse.getData();
+                } else {
+                    headers.addAll(timeLineResponse.getData());
+                }
+                
+                cursor = timeLineResponse.getNext_cursor();
+                log.debug("getGlobalTimeLineHeaders. Recuperados: " + headers.size() + ". Cursor: " + cursor);
+                if (timeLineResponse.getData().isEmpty()) {
+                    continuar = false;
+                } else {
+                    if ((cursor == null) || (headers.size() >= quantity)) {
+                        continuar = false;
+                    }
+                }
+            } while (continuar);
+            
+            return headers.subList(0, Math.min(quantity, headers.size()));
+        } catch (Exception e) {
+            throw e;
+        }
+    }
+
+    @Override
+    public List<ParlerStatus> getGlobalTimeline(List<String> statusIds) {
+        String endpoint = this.apiConfig.getProperty("getStatusDetails_endpoint");
+        int okStatus = Integer.parseInt(this.apiConfig.getProperty("getStatusDetails_ok_status"));
+        
+        try {
+            ParlerStatusDetailsRequest statusDetailsRequest;
+            statusDetailsRequest = new ParlerStatusDetailsRequest(statusIds);
+            String requestJson = this.gson.toJson(statusDetailsRequest);
+            log.debug("Status request: " + requestJson);
+            
+            String uri = endpoint;
+            
+            ApiRequest request = new ApiRequest(uri, okStatus, ApiMethodType.POST, requestJson);
+            request.addApiHeader("Authorization", "Bearer " + this.accessToken);
+            
+            ApiResponse response = this.client.executeApiRequest(request);
+            ParlerStatusDetailsResponse statusDetailsResponse = this.gson.fromJson(response.getResponseStr(), ParlerStatusDetailsResponse.class);
+            
+            return statusDetailsResponse.getData();
         } catch (JsonSyntaxException e) {
             logException(e);
             throw e;

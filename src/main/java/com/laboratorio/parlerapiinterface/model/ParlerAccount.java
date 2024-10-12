@@ -13,7 +13,7 @@ import lombok.Setter;
  * @author Rafael
  * @version 1.0
  * @created 30/09/2024
- * @updated 30/09/2024
+ * @updated 07/10/2024
  */
 
 @Getter @Setter @NoArgsConstructor @AllArgsConstructor
@@ -43,6 +43,10 @@ public class ParlerAccount {
         }
         
         if (this.following < 2) {
+            return false;
+        }
+        
+        if (friendCount == 0) {
             return false;
         }
 

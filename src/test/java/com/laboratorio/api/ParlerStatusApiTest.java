@@ -4,7 +4,12 @@ import com.laboratorio.parlerapiinterface.ParlerStatusApi;
 import com.laboratorio.parlerapiinterface.exception.ParlerApiException;
 import com.laboratorio.parlerapiinterface.impl.ParlerStatusApiImpl;
 import com.laboratorio.parlerapiinterface.model.ParlerStatus;
+import com.laboratorio.parlerapiinterface.model.ParlerStatusHeader;
 import com.laboratorio.parlerapiinterface.utils.ParlerApiConfig;
+import java.util.List;
+import java.util.stream.Collectors;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
@@ -17,11 +22,12 @@ import org.junit.jupiter.api.TestMethodOrder;
  * @author Rafael
  * @version 1.1
  * @created 01/10/2024
- * @updated 06/10/2024
+ * @updated 07/10/2024
  */
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public class ParlerStatusApiTest {
+    protected static final Logger log = LogManager.getLogger(ParlerStatusApiTest.class);
     private static ParlerStatusApi statusApi;
     private static String postId;
     
@@ -74,5 +80,42 @@ public class ParlerStatusApiTest {
         boolean result =statusApi.deleteStatus(postId);
         
         assertTrue(result);
+    }
+    
+    @Test
+    public void getGlobalTimeLineHeaders() {
+        int quantity = 50;
+        
+        List<ParlerStatusHeader> headers = statusApi.getGlobalTimeLineHeaders(quantity);
+        
+        int i = 1;
+        for (ParlerStatusHeader header : headers) {
+            log.info(i + ") Header: " + header.toString());
+            i++;
+        }
+        
+        assertEquals(quantity, headers.size());
+    }
+    
+    @Test
+    public void getGlobalTimeline() {
+        int quantity = 20;
+        
+        List<ParlerStatusHeader> headers = statusApi.getGlobalTimeLineHeaders(quantity);
+        assertEquals(quantity, headers.size());
+        
+        List<String> ulids = headers.stream()
+                .map(h -> h.getUlid())
+                .collect(Collectors.toList());
+        
+        List<ParlerStatus> statuses = statusApi.getGlobalTimeline(ulids);
+        int i = 0;
+        for (ParlerStatus status : statuses) {
+            assertEquals(ulids.get(i), status.getId());
+            i++;
+            log.info(i + ") Status: " + status.toString());
+        }
+        
+        assertEquals(quantity, statuses.size());
     }
 }
