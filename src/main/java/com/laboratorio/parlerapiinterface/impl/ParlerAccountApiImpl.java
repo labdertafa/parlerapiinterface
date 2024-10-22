@@ -16,9 +16,9 @@ import java.util.List;
 /**
  *
  * @author Rafael
- * @version 1.1
+ * @version 1.2
  * @created 30/09/2024
- * @updated 06/10/2024
+ * @updated 22/10/2024
  */
 public class ParlerAccountApiImpl extends ParlerBaseApi implements ParlerAccountApi {
     public ParlerAccountApiImpl(String accessToken) {
@@ -75,6 +75,17 @@ public class ParlerAccountApiImpl extends ParlerBaseApi implements ParlerAccount
         
         return this.getAccountList(uri, okStatus, quantity, posicionInicial);
     }
+    
+    @Override
+    public List<String> getFollowersIds(String username) throws Exception {
+        String endpoint = this.apiConfig.getProperty("getFollowers_endpoint");
+        String complementoUrl = this.apiConfig.getProperty("getFollowers_complemento_url");
+        int okStatus = Integer.parseInt(this.apiConfig.getProperty("getFollowers_ok_status"));
+        
+        String uri = endpoint + "/"  + username + "/" + complementoUrl;
+        
+        return this.getAccountIdsList(uri, okStatus);
+    }
 
     @Override
     public ParlerAccountList getFollowings(String username) throws Exception {
@@ -95,6 +106,17 @@ public class ParlerAccountApiImpl extends ParlerBaseApi implements ParlerAccount
         String uri = endpoint + "/"  + username + "/" + complementoUrl;
         
         return this.getAccountList(uri, okStatus, quantity, posicionInicial);
+    }
+    
+    @Override
+    public List<String> getFollowingsIds(String username) throws Exception {
+        String endpoint = this.apiConfig.getProperty("getFollowings_endpoint");
+        String complementoUrl = this.apiConfig.getProperty("getFollowings_complemento_url");
+        int okStatus = Integer.parseInt(this.apiConfig.getProperty("getFollowings_ok_status"));
+        
+        String uri = endpoint + "/"  + username + "/" + complementoUrl;
+        
+        return this.getAccountIdsList(uri, okStatus);
     }
 
     @Override
@@ -150,5 +172,5 @@ public class ParlerAccountApiImpl extends ParlerBaseApi implements ParlerAccount
     @Override
     public ParlerProfileEngagement checkrelationship(String username) {
         return this.getAccountByUsername(username).getProfileEngagement();
-    }   
+    }
 }

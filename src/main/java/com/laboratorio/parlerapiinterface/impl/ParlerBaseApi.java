@@ -23,9 +23,9 @@ import org.apache.logging.log4j.Logger;
 /**
  *
  * @author Rafael
- * @version 1.1
+ * @version 1.2
  * @created 30/09/2024
- * @updated 06/10/2024
+ * @updated 22/10/2024
  */
 public class ParlerBaseApi {
     protected static final Logger log = LogManager.getLogger(ParlerBaseApi.class);
@@ -145,6 +145,38 @@ public class ParlerBaseApi {
             }
             
             return new ParlerAccountList(accounts.subList(0, Math.min(quantity, accounts.size())), cursor);
+        } catch (Exception e) {
+            throw e;
+        }
+    }
+    
+    protected List<String> getAccountIdsList(String uri, int okStatus) {
+        List<String> accountIds = null;
+        boolean continuar = true;
+        String cursor = null;
+        
+        try {
+            do {
+                ParlerAccountListResponse accountListResponse = this.getAccountPage(uri, okStatus, cursor);
+                
+                // Se obtienen los detalles de los usuarios
+                List<String> ids = accountListResponse.getData().stream()
+                                .map(user -> user.getUlid())
+                                .collect(Collectors.toList());
+                if (accountIds == null) {
+                    accountIds = ids;
+                } else {
+                    accountIds.addAll(ids);
+                }
+                
+                cursor = accountListResponse.getNext_cursor();
+                log.debug("Recuperados: " + accountIds.size() + ". Cursor: " + cursor);
+                if (cursor == null) {
+                    continuar = false;
+                }
+            } while (continuar);
+
+            return accountIds;
         } catch (Exception e) {
             throw e;
         }

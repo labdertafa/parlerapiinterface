@@ -16,9 +16,9 @@ import org.junit.jupiter.api.TestMethodOrder;
 /**
  *
  * @author Rafael
- * @version 1.0
+ * @version 1.1
  * @created 30/09/2024
- * @updated 01/10/2024
+ * @updated 22/10/2024
  */
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
@@ -82,6 +82,15 @@ public class ParlerAccountApiTest {
     }
     
     @Test
+    public void getFollowersIds() throws Exception {
+        String username = "orangutito";
+        
+        List<String> list  = accountApi.getFollowersIds(username);
+
+        assertTrue(!list.isEmpty());
+    }
+    
+    @Test
     public void get30Followings() throws Exception {
         String username = "Echoquotes";
         int cantidad = 30;
@@ -111,6 +120,15 @@ public class ParlerAccountApiTest {
 
         assertTrue(!accountList.getAccounts().isEmpty());
         assertTrue(accountList.getCursor() == null);
+    }
+    
+    @Test
+    public void getFollowingsIds() throws Exception {
+        String username = "orangutito";
+        
+        List<String> list  = accountApi.getFollowingsIds(username);
+
+        assertTrue(!list.isEmpty());
     }
     
     @Test @Order(1)

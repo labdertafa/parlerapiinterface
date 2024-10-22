@@ -8,9 +8,9 @@ import java.util.List;
 /**
  *
  * @author Rafael
- * @version 1.0
+ * @version 1.1
  * @created 30/09/2024
- * @updated 01/10/2024
+ * @updated 22/10/2024
  */
 public interface ParlerAccountApi {
     ParlerAccount getAccountByUsername(String username);
@@ -20,9 +20,13 @@ public interface ParlerAccountApi {
     ParlerAccountList getFollowers(String username, int quantity) throws Exception;
     ParlerAccountList getFollowers(String username, int quantity, String posicionInicial) throws Exception;
     
+    List<String> getFollowersIds(String username) throws Exception; 
+    
     ParlerAccountList getFollowings(String username) throws Exception;
     ParlerAccountList getFollowings(String username, int quantity) throws Exception;
     ParlerAccountList getFollowings(String username, int quantity, String posicionInicial) throws Exception;
+    
+    List<String> getFollowingsIds(String username) throws Exception; 
     
     boolean followAccount(String  username);
     boolean unfollowAccount(String  username);
