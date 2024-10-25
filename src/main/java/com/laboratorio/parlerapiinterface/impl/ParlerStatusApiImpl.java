@@ -31,7 +31,7 @@ import java.util.stream.Collectors;
  * @author Rafael
  * @version 1.2
  * @created 01/10/2024
- * @updated 12/10/2024
+ * @updated 25/10/2024
  */
 public class ParlerStatusApiImpl extends ParlerBaseApi implements ParlerStatusApi {
     public ParlerStatusApiImpl(String accessToken) {
@@ -102,6 +102,8 @@ public class ParlerStatusApiImpl extends ParlerBaseApi implements ParlerStatusAp
             ParlerRegisterUploadRequest uploadRequest = new ParlerRegisterUploadRequest(imageMetadata.getMimeType());
             String request1Json = this.gson.toJson(uploadRequest);
             
+            log.debug("Request de registro imagen: " + request1Json);
+            
             String uri1 = endpoint1;
             
             ApiRequest request1 = new ApiRequest(uri1, okStatus1, ApiMethodType.POST, request1Json);
@@ -115,6 +117,7 @@ public class ParlerStatusApiImpl extends ParlerBaseApi implements ParlerStatusAp
             // Se sube la imagen al servidor
             ApiRequest request2 = new ApiRequest(uploadResponse.getUrl(), okStatus2, ApiMethodType.PUT, file);
             request2.addApiHeader("X-Amz-Acl", uploadResponse.getHeaders().getXAmzAcl().get(0));
+            request2.addApiHeader("Content-Type", imageMetadata.getMimeType());
             
             this.client.executeApiRequest(request2);
             

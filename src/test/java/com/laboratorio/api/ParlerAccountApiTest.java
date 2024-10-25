@@ -6,6 +6,8 @@ import com.laboratorio.parlerapiinterface.model.ParlerAccount;
 import com.laboratorio.parlerapiinterface.model.ParlerAccountList;
 import com.laboratorio.parlerapiinterface.utils.ParlerApiConfig;
 import java.util.List;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
@@ -18,11 +20,12 @@ import org.junit.jupiter.api.TestMethodOrder;
  * @author Rafael
  * @version 1.1
  * @created 30/09/2024
- * @updated 22/10/2024
+ * @updated 23/10/2024
  */
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public class ParlerAccountApiTest {
+    protected static final Logger log = LogManager.getLogger(ParlerStatusApiTest.class);
     private static ParlerAccountApi accountApi;
     
     @BeforeEach
@@ -83,9 +86,10 @@ public class ParlerAccountApiTest {
     
     @Test
     public void getFollowersIds() throws Exception {
-        String username = "orangutito";
+        String username = "labrafa";
         
         List<String> list  = accountApi.getFollowersIds(username);
+        log.info("Elementos recuperados: " + list.size());
 
         assertTrue(!list.isEmpty());
     }
@@ -124,9 +128,10 @@ public class ParlerAccountApiTest {
     
     @Test
     public void getFollowingsIds() throws Exception {
-        String username = "orangutito";
+        String username = "labrafa";
         
         List<String> list  = accountApi.getFollowingsIds(username);
+        log.info("Elementos recuperados: " + list.size());
 
         assertTrue(!list.isEmpty());
     }

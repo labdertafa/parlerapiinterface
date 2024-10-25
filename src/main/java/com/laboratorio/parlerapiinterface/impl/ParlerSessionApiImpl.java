@@ -17,7 +17,7 @@ import com.laboratorio.parlerapiinterface.model.response.ParlerMagicLinkResponse
  * @author Rafael
  * @version 1.1
  * @created 30/09/2024
- * @updated 06/10/2024
+ * @updated 24/10/2024
  */
 public class ParlerSessionApiImpl extends ParlerBaseApi implements ParlerSessionApi {
     private final String userEmail;
@@ -71,7 +71,7 @@ public class ParlerSessionApiImpl extends ParlerBaseApi implements ParlerSession
             ApiRequest request = new ApiRequest(uri, okStatus, ApiMethodType.POST, requestJson);
             
             ApiResponse response = this.client.executeApiRequest(request);
-            log.info("Respuesta de authenticateUser: " + response.getResponseStr());
+            log.debug("Respuesta de authenticateUser: " + response.getResponseStr());
             
             ParlerSession newSession =  this.gson.fromJson(response.getResponseStr(), ParlerSession.class);
             this.setAccessToken(newSession.getAccess_token());
@@ -114,7 +114,7 @@ public class ParlerSessionApiImpl extends ParlerBaseApi implements ParlerSession
         int pos = content.indexOf(": ");
         if (pos != -1) {
             String codeStr = content.substring(pos + 2, pos + 8);
-            log.info("Código de autenticación: " + codeStr);
+            log.debug("Código de autenticación: " + codeStr);
             code = Integer.parseInt(codeStr);
         }
         
