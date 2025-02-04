@@ -11,13 +11,15 @@ import com.laboratorio.parlerapiinterface.model.ParlerSession;
 import com.laboratorio.parlerapiinterface.model.request.ParlerAuthenticateRequest;
 import com.laboratorio.parlerapiinterface.model.request.ParlerMagicLinkRequest;
 import com.laboratorio.parlerapiinterface.model.response.ParlerMagicLinkResponse;
+import java.util.List;
+import java.util.Map;
 
 /**
  *
  * @author Rafael
  * @version 1.1
  * @created 30/09/2024
- * @updated 24/10/2024
+ * @updated 04/02/2025
  */
 public class ParlerSessionApiImpl extends ParlerBaseApi implements ParlerSessionApi {
     private final String userEmail;
@@ -29,8 +31,21 @@ public class ParlerSessionApiImpl extends ParlerBaseApi implements ParlerSession
         this.password = password;
     }
     
+    private String getCookieWithXsrfToken(Map<String, List<String>> headers) {
+        if (headers.containsKey("Set-Cookie")) {
+            List<String> cookies = headers.get("Set-Cookie");
+            for (String cookie : cookies) {
+                if (cookie.contains("XSRF-TOKEN")) {
+                    return cookie;
+                }
+            }
+        }
+        
+        return null;
+    }
+    
     @Override
-    public ParlerMagicLinkResponse sendMagicLink() {
+    public String sendMagicLink() {
         String endpoint = this.apiConfig.getProperty("sendMagicLink_endpoint");
         int okStatus = Integer.parseInt(this.apiConfig.getProperty("sendMagicLink_ok_status"));
         String correctResponse = this.apiConfig.getProperty("sendMagicLink_response");
@@ -41,6 +56,10 @@ public class ParlerSessionApiImpl extends ParlerBaseApi implements ParlerSession
             
             String uri = endpoint;
             ApiRequest request = new ApiRequest(uri, okStatus, ApiMethodType.POST, requestJson);
+            request.addApiHeader("Content-Type", "application/json");
+            request.addApiHeader("Accept", "*/*");
+            request.addApiHeader("Accept-Encoding", "gzip, deflate, br");
+            request.addApiHeader("User-Agent", "PostmanRuntime/7.43.0");
             
             ApiResponse response = this.client.executeApiRequest(request);
             log.debug("Respuesta magic link: " + response.getResponseStr());
@@ -49,7 +68,7 @@ public class ParlerSessionApiImpl extends ParlerBaseApi implements ParlerSession
                 throw new ParlerApiException(ParlerSessionApiImpl.class.getName(), "Se ha producido enviando el magic link al correo " + this.userEmail);
             }
             
-            return magicLinkResponse;
+            return getCookieWithXsrfToken(response.getHttpHeaders());
         } catch (JsonSyntaxException e) {
             logException(e);
             throw e;
@@ -59,7 +78,7 @@ public class ParlerSessionApiImpl extends ParlerBaseApi implements ParlerSession
     }
 
     @Override
-    public ParlerSession authenticateUser(int code) {
+    public ParlerSession authenticateUser(int code, String cookieStr) {
         String endpoint = this.apiConfig.getProperty("authenticateUser_endpoint");
         int okStatus = Integer.parseInt(this.apiConfig.getProperty("authenticateUser_ok_status"));
         
@@ -69,6 +88,14 @@ public class ParlerSessionApiImpl extends ParlerBaseApi implements ParlerSession
             
             String uri = endpoint;
             ApiRequest request = new ApiRequest(uri, okStatus, ApiMethodType.POST, requestJson);
+            request.addApiHeader("Content-Type", "application/json");
+            request.addApiHeader("Accept", "*/*");
+            request.addApiHeader("Accept-Encoding", "gzip, deflate, br");
+            request.addApiHeader("User-Agent", "PostmanRuntime/7.43.0");
+            request.addApiHeader("Connection", "keep-alive");
+            if (cookieStr != null) {
+                request.addApiHeader("Cookie", cookieStr);
+            }
             
             ApiResponse response = this.client.executeApiRequest(request);
             log.debug("Respuesta de authenticateUser: " + response.getResponseStr());
@@ -88,7 +115,7 @@ public class ParlerSessionApiImpl extends ParlerBaseApi implements ParlerSession
     @Override
     public ParlerSession authenticateUser() {
         try {
-            this.sendMagicLink();
+            String cookieStr = this.sendMagicLink();
             
             // Esperar la llegada del correo
             try {
@@ -102,7 +129,7 @@ public class ParlerSessionApiImpl extends ParlerBaseApi implements ParlerSession
                 throw new ParlerApiException(ParlerSessionApiImpl.class.getName(), "No se pudo recuperar el código del correo " + this.userEmail);
             }
             
-            return this.authenticateUser(code);
+            return this.authenticateUser(code, cookieStr);
         } catch (Exception e) {
             throw new ParlerApiException(ParlerMagicLinkResponse.class.getName(), e.getMessage());
         }

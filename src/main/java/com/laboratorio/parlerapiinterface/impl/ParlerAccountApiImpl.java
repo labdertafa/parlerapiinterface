@@ -18,7 +18,7 @@ import java.util.List;
  * @author Rafael
  * @version 1.2
  * @created 30/09/2024
- * @updated 22/10/2024
+ * @updated 04/02/2025
  */
 public class ParlerAccountApiImpl extends ParlerBaseApi implements ParlerAccountApi {
     public ParlerAccountApiImpl(String accessToken) {
@@ -34,8 +34,7 @@ public class ParlerAccountApiImpl extends ParlerBaseApi implements ParlerAccount
         try {
             String uri = endpoint + "/" + username;
             ApiRequest request = new ApiRequest(uri, okStatus, ApiMethodType.GET);
-            request.addApiHeader("Content-Type", "application/json");
-            request.addApiHeader("Authorization", "Bearer " + accessToken);
+            this.addHeaders(request, this.accessToken);
             
             ApiResponse response = this.client.executeApiRequest(request);
             
@@ -129,8 +128,7 @@ public class ParlerAccountApiImpl extends ParlerBaseApi implements ParlerAccount
             String uri = endpoint + "/" + username + "/" + complementoUrl;
             
             ApiRequest request = new ApiRequest(uri, okStatus, ApiMethodType.PUT);
-            request.addApiHeader("Content-Type", "application/json");
-            request.addApiHeader("Authorization", "Bearer " + this.accessToken);
+            this.addHeaders(request, this.accessToken);
             
             ApiResponse response = this.client.executeApiRequest(request);
             ParlerActionResponse actionResponse = this.gson.fromJson(response.getResponseStr(), ParlerActionResponse.class);
@@ -154,8 +152,7 @@ public class ParlerAccountApiImpl extends ParlerBaseApi implements ParlerAccount
             String uri = endpoint + "/" + username + "/" + complementoUrl;
 
             ApiRequest request = new ApiRequest(uri, okStatus, ApiMethodType.DELETE);
-            request.addApiHeader("Content-Type", "application/json");
-            request.addApiHeader("Authorization", "Bearer " + this.accessToken);
+            this.addHeaders(request, this.accessToken);
             
             ApiResponse response = this.client.executeApiRequest(request);
             ParlerActionResponse actionResponse = this.gson.fromJson(response.getResponseStr(), ParlerActionResponse.class);

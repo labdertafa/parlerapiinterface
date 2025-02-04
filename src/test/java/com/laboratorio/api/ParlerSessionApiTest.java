@@ -12,9 +12,9 @@ import static org.junit.jupiter.api.Assertions.*;
 /**
  *
  * @author Rafael
- * @version 1.0
+ * @version 1.1
  * @created 30/09/2024
- * @updated 30/09/2024
+ * @updated 04/02/2025
  */
 public class ParlerSessionApiTest {
     private static ParlerSessionApi sessionApi;
@@ -27,16 +27,14 @@ public class ParlerSessionApiTest {
         sessionApi = new ParlerSessionApiImpl(userEmail, password);
     }
     
-/*    @Test
+    @Test
     public void authenticateUser() {
-        String correctResponse = ParlerApiConfig.getInstance().getProperty("sendMagicLink_response");
+        String cookieStr = sessionApi.sendMagicLink();
         
-        ParlerMagicLinkResponse response = sessionApi.sendMagicLink();
-        
-        assertEquals(correctResponse,  response.getMessage());
+        assertNotNull(cookieStr);
         
         try {
-            Thread.sleep(30000);
+            Thread.sleep(60000);
         } catch (Exception e) {
         }
         
@@ -44,8 +42,8 @@ public class ParlerSessionApiTest {
         
         assertTrue(code != -1);
         
-        ParlerSession session = sessionApi.authenticateUser(code);
+        ParlerSession session = sessionApi.authenticateUser(code, cookieStr);
         
         assertTrue(session.getAccess_token().length() > 0);
-    } */
+    }
 }

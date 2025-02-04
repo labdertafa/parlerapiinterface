@@ -17,7 +17,7 @@ import java.util.stream.Collectors;
  * @author Rafael
  * @version 1.1
  * @created 02/10/2024
- * @updated 06/10/2024
+ * @updated 04/02/2025
  */
 public class ParlerNotificationApiImpl extends ParlerBaseApi implements ParlerNotificationApi {
     public ParlerNotificationApiImpl(String accessToken) {
@@ -37,9 +37,7 @@ public class ParlerNotificationApiImpl extends ParlerBaseApi implements ParlerNo
             if (posicionInicial != null) {
                 request.addApiPathParam("cursor", posicionInicial);
             }
-            
-            request.addApiHeader("Content-Type", "application/json");
-            request.addApiHeader("Authorization", "Bearer " + this.accessToken);
+            this.addHeaders(request, this.accessToken);
             
             ApiResponse response = this.client.executeApiRequest(request);
                         

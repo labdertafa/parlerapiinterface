@@ -31,7 +31,7 @@ import java.util.stream.Collectors;
  * @author Rafael
  * @version 1.2
  * @created 01/10/2024
- * @updated 25/10/2024
+ * @updated 04/02/2024
  */
 public class ParlerStatusApiImpl extends ParlerBaseApi implements ParlerStatusApi {
     public ParlerStatusApiImpl(String accessToken) {
@@ -72,7 +72,7 @@ public class ParlerStatusApiImpl extends ParlerBaseApi implements ParlerStatusAp
             String uri = endpoint;
             
             ApiRequest request = new ApiRequest(uri, okStatus, ApiMethodType.PUT, requestJson);
-            request.addApiHeader("Authorization", "Bearer " + this.accessToken);
+            this.addHeaders(request, this.accessToken);
             request.addApiHeader("Connection", "keep-alive");
             
             ApiResponse response = this.client.executeApiRequest(request);
@@ -107,7 +107,7 @@ public class ParlerStatusApiImpl extends ParlerBaseApi implements ParlerStatusAp
             String uri1 = endpoint1;
             
             ApiRequest request1 = new ApiRequest(uri1, okStatus1, ApiMethodType.POST, request1Json);
-            request1.addApiHeader("Authorization", "Bearer " + this.accessToken);
+            this.addHeaders(request1, this.accessToken);
             
             ApiResponse response1 = this.client.executeApiRequest(request1);
             ParlerRegisterUploadResponse uploadResponse = this.gson.fromJson(response1.getResponseStr(), ParlerRegisterUploadResponse.class);
@@ -133,7 +133,7 @@ public class ParlerStatusApiImpl extends ParlerBaseApi implements ParlerStatusAp
             String uri3 = endpoint3;
             
             ApiRequest request3 = new ApiRequest(uri3, okStatus3, ApiMethodType.POST, request3Json);
-            request3.addApiHeader("Authorization", "Bearer " + this.accessToken);
+            this.addHeaders(request3, this.accessToken);
             request3.addApiHeader("Connection", "keep-alive");
             
             ApiResponse response3 = this.client.executeApiRequest(request3);
@@ -160,7 +160,7 @@ public class ParlerStatusApiImpl extends ParlerBaseApi implements ParlerStatusAp
             String uri = endpoint;
             ApiRequest request = new ApiRequest(uri, okStatus, ApiMethodType.DELETE);
             request.addApiPathParam("ulid", id);
-            request.addApiHeader("Authorization", "Bearer " + this.accessToken);
+            this.addHeaders(request, this.accessToken);
             
             ApiResponse response = this.client.executeApiRequest(request);
             ParlerActionResponse actionResponse = this.gson.fromJson(response.getResponseStr(), ParlerActionResponse.class);
@@ -181,9 +181,7 @@ public class ParlerStatusApiImpl extends ParlerBaseApi implements ParlerStatusAp
             if (posicionInicial != null) {
                 request.addApiPathParam("cursor", posicionInicial);
             }
-            
-            request.addApiHeader("Content-Type", "application/json");
-            request.addApiHeader("Authorization", "Bearer " + this.accessToken);
+            this.addHeaders(request, this.accessToken);
             
             ApiResponse response = this.client.executeApiRequest(request);
                         
@@ -247,7 +245,7 @@ public class ParlerStatusApiImpl extends ParlerBaseApi implements ParlerStatusAp
             String uri = endpoint;
             
             ApiRequest request = new ApiRequest(uri, okStatus, ApiMethodType.POST, requestJson);
-            request.addApiHeader("Authorization", "Bearer " + this.accessToken);
+            this.addHeaders(request, this.accessToken);
             
             ApiResponse response = this.client.executeApiRequest(request);
             ParlerStatusDetailsResponse statusDetailsResponse = this.gson.fromJson(response.getResponseStr(), ParlerStatusDetailsResponse.class);

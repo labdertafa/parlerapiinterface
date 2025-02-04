@@ -25,7 +25,7 @@ import org.apache.logging.log4j.Logger;
  * @author Rafael
  * @version 1.2
  * @created 30/09/2024
- * @updated 22/10/2024
+ * @updated 04/02/2025
  */
 public class ParlerBaseApi {
     protected static final Logger log = LogManager.getLogger(ParlerBaseApi.class);
@@ -51,6 +51,14 @@ public class ParlerBaseApi {
         }
     }
     
+    protected void addHeaders(ApiRequest request, String token) {
+        request.addApiHeader("Content-Type", "application/json");
+        request.addApiHeader("Authorization", "Bearer " + token);
+        request.addApiHeader("Accept", "*/*");
+        request.addApiHeader("Accept-Encoding", "gzip, deflate, br");
+        request.addApiHeader("User-Agent", "PostmanRuntime/7.43.0");
+    }
+    
     protected List<ParlerAccount> getAccountsDetailsById(List<String> usersId) {
         String endpoint = this.apiConfig.getProperty("getAccountById_endpoint");
         int okStatus = Integer.parseInt(this.apiConfig.getProperty("getAccountById_ok_status"));
@@ -61,8 +69,7 @@ public class ParlerBaseApi {
                     
             String uri = endpoint;
             ApiRequest request = new ApiRequest(uri, okStatus, ApiMethodType.POST, requestJson);
-            request.addApiHeader("Content-Type", "application/json");
-            request.addApiHeader("Authorization", "Bearer " + accessToken);
+            this.addHeaders(request, this.accessToken);
             
             ApiResponse response = this.client.executeApiRequest(request);
             
@@ -87,8 +94,7 @@ public class ParlerBaseApi {
             if (posicionInicial != null) {
                 request.addApiPathParam("cursor", posicionInicial);
             }
-            request.addApiHeader("Content-Type", "application/json");
-            request.addApiHeader("Authorization", "Bearer " + accessToken);
+            this.addHeaders(request, this.accessToken);
             
             ApiResponse response = this.client.executeApiRequest(request);
             
