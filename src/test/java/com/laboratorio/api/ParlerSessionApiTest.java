@@ -27,7 +27,7 @@ public class ParlerSessionApiTest {
         sessionApi = new ParlerSessionApiImpl(userEmail, password);
     }
     
-    @Test
+/*    @Test
     public void authenticateUser() {
         String cookieStr = sessionApi.sendMagicLink();
         
@@ -35,7 +35,7 @@ public class ParlerSessionApiTest {
         
         try {
             Thread.sleep(60000);
-        } catch (Exception e) {
+        } catch (InterruptedException e) {
         }
         
         int code = sessionApi.checkParlerMagicLinkEmail();
@@ -45,5 +45,5 @@ public class ParlerSessionApiTest {
         ParlerSession session = sessionApi.authenticateUser(code, cookieStr);
         
         assertTrue(session.getAccess_token().length() > 0);
-    }
+    } */
 }

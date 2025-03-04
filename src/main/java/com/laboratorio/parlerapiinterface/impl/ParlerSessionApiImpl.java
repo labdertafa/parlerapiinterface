@@ -17,9 +17,9 @@ import java.util.Map;
 /**
  *
  * @author Rafael
- * @version 1.1
+ * @version 1.2
  * @created 30/09/2024
- * @updated 04/02/2025
+ * @updated 04/03/2025
  */
 public class ParlerSessionApiImpl extends ParlerBaseApi implements ParlerSessionApi {
     private final String userEmail;
@@ -29,6 +29,11 @@ public class ParlerSessionApiImpl extends ParlerBaseApi implements ParlerSession
         super();
         this.userEmail = userEmail;
         this.password = password;
+    }
+    
+    @Override
+    public ParlerSession createSession() {
+        return this.authenticateUser();
     }
     
     private String getCookieWithXsrfToken(Map<String, List<String>> headers) {
