@@ -1,11 +1,11 @@
 package com.laboratorio.api;
 
+import com.laboratorio.clientapilibrary.utils.ReaderConfig;
 import com.laboratorio.parlerapiinterface.ParlerStatusApi;
 import com.laboratorio.parlerapiinterface.exception.ParlerApiException;
 import com.laboratorio.parlerapiinterface.impl.ParlerStatusApiImpl;
 import com.laboratorio.parlerapiinterface.model.ParlerStatus;
 import com.laboratorio.parlerapiinterface.model.ParlerStatusHeader;
-import com.laboratorio.parlerapiinterface.utils.ParlerApiConfig;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.apache.logging.log4j.LogManager;
@@ -22,7 +22,7 @@ import org.junit.jupiter.api.TestMethodOrder;
  * @author Rafael
  * @version 1.1
  * @created 01/10/2024
- * @updated 12/10/2024
+ * @updated 10/05/2025
  */
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
@@ -33,7 +33,8 @@ public class ParlerStatusApiTest {
     
     @BeforeEach
     public void initTest() {
-        String accessToken = ParlerApiConfig.getInstance().getProperty("test_access_token");
+        ReaderConfig config = new ReaderConfig("config//parler_api.properties");
+        String accessToken = config.getProperty("test_access_token");
         statusApi = new ParlerStatusApiImpl(accessToken);
     }
     

@@ -1,10 +1,10 @@
 package com.laboratorio.api;
 
+import com.laboratorio.clientapilibrary.utils.ReaderConfig;
 import com.laboratorio.parlerapiinterface.ParlerAccountApi;
 import com.laboratorio.parlerapiinterface.impl.ParlerAccountApiImpl;
 import com.laboratorio.parlerapiinterface.model.ParlerAccount;
 import com.laboratorio.parlerapiinterface.model.ParlerAccountList;
-import com.laboratorio.parlerapiinterface.utils.ParlerApiConfig;
 import java.util.List;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -20,7 +20,7 @@ import org.junit.jupiter.api.TestMethodOrder;
  * @author Rafael
  * @version 1.1
  * @created 30/09/2024
- * @updated 23/10/2024
+ * @updated 10/05/2025
  */
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
@@ -30,7 +30,8 @@ public class ParlerAccountApiTest {
     
     @BeforeEach
     public void initTest() {
-        String accessToken = ParlerApiConfig.getInstance().getProperty("test_access_token");
+        ReaderConfig config = new ReaderConfig("config//parler_api.properties");
+        String accessToken = config.getProperty("test_access_token");
         accountApi = new ParlerAccountApiImpl(accessToken);
     }
     

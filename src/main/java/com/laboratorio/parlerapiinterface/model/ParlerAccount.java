@@ -1,6 +1,6 @@
 package com.laboratorio.parlerapiinterface.model;
 
-import com.laboratorio.parlerapiinterface.utils.ParlerApiConfig;
+import com.laboratorio.clientapilibrary.utils.ReaderConfig;
 import java.util.List;
 import java.util.Objects;
 import lombok.AllArgsConstructor;
@@ -13,7 +13,7 @@ import lombok.Setter;
  * @author Rafael
  * @version 1.0
  * @created 30/09/2024
- * @updated 07/10/2024
+ * @updated 10/05/2025
  */
 
 @Getter @Setter @NoArgsConstructor @AllArgsConstructor
@@ -54,7 +54,7 @@ public class ParlerAccount {
     }
     
     public boolean isFuenteSeguidores() {
-        ParlerApiConfig config = ParlerApiConfig.getInstance();
+        ReaderConfig config = new ReaderConfig("config//parler_api.properties");
         int umbral = Integer.parseInt(config.getProperty("umbral_fuente_seguidores"));
         return this.followers >= umbral;
     }

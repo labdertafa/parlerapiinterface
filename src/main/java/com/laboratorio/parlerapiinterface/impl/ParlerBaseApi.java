@@ -7,13 +7,13 @@ import com.laboratorio.clientapilibrary.ApiClient;
 import com.laboratorio.clientapilibrary.model.ApiMethodType;
 import com.laboratorio.clientapilibrary.model.ApiRequest;
 import com.laboratorio.clientapilibrary.model.ApiResponse;
+import com.laboratorio.clientapilibrary.utils.ReaderConfig;
 import com.laboratorio.parlerapiinterface.exception.ParlerApiException;
 import com.laboratorio.parlerapiinterface.model.ParlerAccount;
 import com.laboratorio.parlerapiinterface.model.ParlerAccountList;
 import com.laboratorio.parlerapiinterface.model.request.ParlerGetAccountsByIdRequest;
 import com.laboratorio.parlerapiinterface.model.response.ParlerAccountListResponse;
 import com.laboratorio.parlerapiinterface.model.response.ParlerGetAccountsByIdResponse;
-import com.laboratorio.parlerapiinterface.utils.ParlerApiConfig;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -25,17 +25,17 @@ import org.apache.logging.log4j.Logger;
  * @author Rafael
  * @version 1.2
  * @created 30/09/2024
- * @updated 04/02/2025
+ * @updated 10/05/2025
  */
 public class ParlerBaseApi {
     protected static final Logger log = LogManager.getLogger(ParlerBaseApi.class);
     protected final ApiClient client;
-    protected final ParlerApiConfig apiConfig;
+    protected final ReaderConfig apiConfig;
     protected final Gson gson;
     protected String accessToken = "";
 
     public ParlerBaseApi() {
-        this.apiConfig = ParlerApiConfig.getInstance();
+        this.apiConfig = new ReaderConfig("config//parler_api.properties");
         this.client = new ApiClient();
         this.gson = new Gson();
     }
