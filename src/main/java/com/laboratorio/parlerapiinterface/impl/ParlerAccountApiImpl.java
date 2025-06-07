@@ -1,6 +1,5 @@
 package com.laboratorio.parlerapiinterface.impl;
 
-import com.google.gson.JsonSyntaxException;
 import com.laboratorio.clientapilibrary.model.ApiMethodType;
 import com.laboratorio.clientapilibrary.model.ApiRequest;
 import com.laboratorio.clientapilibrary.model.ApiResponse;
@@ -16,9 +15,9 @@ import java.util.List;
 /**
  *
  * @author Rafael
- * @version 1.2
+ * @version 1.3
  * @created 30/09/2024
- * @updated 04/02/2025
+ * @updated 07/06/2025
  */
 public class ParlerAccountApiImpl extends ParlerBaseApi implements ParlerAccountApi {
     public ParlerAccountApiImpl(String accessToken) {
@@ -37,15 +36,13 @@ public class ParlerAccountApiImpl extends ParlerBaseApi implements ParlerAccount
             this.addHeaders(request, this.accessToken);
             
             ApiResponse response = this.client.executeApiRequest(request);
+            log.debug("Response getAccountByUsername: {}", response.getResponseStr());
             
             ParlerProfileResonse profileResonse =  this.gson.fromJson(response.getResponseStr(), ParlerProfileResonse.class);
             
             return profileResonse.getData();
-        } catch (JsonSyntaxException e) {
-            logException(e);
-            throw e;
         } catch (Exception e) {
-            throw new ParlerApiException(ParlerAccountApiImpl.class.getName(), e.getMessage());
+            throw new ParlerApiException("Error recuperando detalle del usuario Parler con username: " + username, e);
         }
     }
 
@@ -132,13 +129,11 @@ public class ParlerAccountApiImpl extends ParlerBaseApi implements ParlerAccount
             
             ApiResponse response = this.client.executeApiRequest(request);
             ParlerActionResponse actionResponse = this.gson.fromJson(response.getResponseStr(), ParlerActionResponse.class);
+            log.debug("Response followAccount: {}", response.getResponseStr());
             
             return actionResponse.isSuccess();
-        } catch (JsonSyntaxException e) {
-            logException(e);
-            throw e;
         } catch (Exception e) {
-            throw new ParlerApiException(ParlerAccountApiImpl.class.getName(), e.getMessage());
+            throw new ParlerApiException("Error siguiendo la cuenta Parler con username: " + username, e);
         }
     }
 
@@ -155,14 +150,12 @@ public class ParlerAccountApiImpl extends ParlerBaseApi implements ParlerAccount
             this.addHeaders(request, this.accessToken);
             
             ApiResponse response = this.client.executeApiRequest(request);
+            log.debug("Response unfollowAccount: {}", response.getResponseStr());
             ParlerActionResponse actionResponse = this.gson.fromJson(response.getResponseStr(), ParlerActionResponse.class);
             
             return actionResponse.isSuccess();
-        } catch (JsonSyntaxException e) {
-            logException(e);
-            throw e;
         } catch (Exception e) {
-            throw new ParlerApiException(ParlerAccountApiImpl.class.getName(), e.getMessage());
+            throw new ParlerApiException("Error dejando de seguir la cuenta Parler con username: " + username, e);
         }
     }
 

@@ -1,6 +1,5 @@
 package com.laboratorio.parlerapiinterface.impl;
 
-import com.google.gson.JsonSyntaxException;
 import com.laboratorio.clientapilibrary.model.ApiMethodType;
 import com.laboratorio.clientapilibrary.model.ApiRequest;
 import com.laboratorio.clientapilibrary.model.ApiResponse;
@@ -17,9 +16,9 @@ import java.util.Map;
 /**
  *
  * @author Rafael
- * @version 1.2
+ * @version 1.3
  * @created 30/09/2024
- * @updated 04/03/2025
+ * @updated 07/06/2025
  */
 public class ParlerSessionApiImpl extends ParlerBaseApi implements ParlerSessionApi {
     private final String userEmail;
@@ -70,15 +69,14 @@ public class ParlerSessionApiImpl extends ParlerBaseApi implements ParlerSession
             log.debug("Respuesta magic link: " + response.getResponseStr());
             ParlerMagicLinkResponse magicLinkResponse = this.gson.fromJson(response.getResponseStr(), ParlerMagicLinkResponse.class);
             if (!magicLinkResponse.getMessage().equals(correctResponse)) {
-                throw new ParlerApiException(ParlerSessionApiImpl.class.getName(), "Se ha producido enviando el magic link al correo " + this.userEmail);
+                throw new ParlerApiException("Se ha producido enviando el magic link al correo " + this.userEmail);
             }
             
             return getCookieWithXsrfToken(response.getHttpHeaders());
-        } catch (JsonSyntaxException e) {
-            logException(e);
+        } catch (ParlerApiException e) {
             throw e;
         } catch (Exception e) {
-            throw new ParlerApiException(ParlerMagicLinkResponse.class.getName(), e.getMessage());
+            throw new ParlerApiException("Ha ocurrido un error generando el Magic Link de Parler", e);
         }
     }
 
@@ -109,35 +107,28 @@ public class ParlerSessionApiImpl extends ParlerBaseApi implements ParlerSession
             this.setAccessToken(newSession.getAccess_token());
             
             return newSession;
-        } catch (JsonSyntaxException e) {
-            logException(e);
-            throw e;
         } catch (Exception e) {
-            throw new ParlerApiException(ParlerMagicLinkResponse.class.getName(), e.getMessage());
+            throw new ParlerApiException("Ha ocurrido un error autenticando un usuario parler", e);
         }
     }
     
     @Override
     public ParlerSession authenticateUser() {
+        String cookieStr = this.sendMagicLink();
+
+        // Esperar la llegada del correo
         try {
-            String cookieStr = this.sendMagicLink();
-            
-            // Esperar la llegada del correo
-            try {
-                Thread.sleep(60000);
-            } catch (Exception e) {
-                log.warn("No se pudo completar el tiempo de espera del email: " + e.getMessage());
-            }
-            
-            int code = this.checkParlerMagicLinkEmail();
-            if (code == -1) {
-                throw new ParlerApiException(ParlerSessionApiImpl.class.getName(), "No se pudo recuperar el código del correo " + this.userEmail);
-            }
-            
-            return this.authenticateUser(code, cookieStr);
+            Thread.sleep(60000);
         } catch (Exception e) {
-            throw new ParlerApiException(ParlerMagicLinkResponse.class.getName(), e.getMessage());
+            log.warn("No se pudo completar el tiempo de espera del email: " + e.getMessage());
         }
+
+        int code = this.checkParlerMagicLinkEmail();
+        if (code == -1) {
+            throw new ParlerApiException("No se pudo recuperar el código del correo " + this.userEmail);
+        }
+
+        return this.authenticateUser(code, cookieStr);
     }
     
     private int extractParlerCode(String content) {

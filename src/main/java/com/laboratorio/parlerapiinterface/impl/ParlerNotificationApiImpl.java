@@ -1,6 +1,5 @@
 package com.laboratorio.parlerapiinterface.impl;
 
-import com.google.gson.JsonSyntaxException;
 import com.laboratorio.clientapilibrary.model.ApiMethodType;
 import com.laboratorio.clientapilibrary.model.ApiRequest;
 import com.laboratorio.clientapilibrary.model.ApiResponse;
@@ -17,7 +16,7 @@ import java.util.stream.Collectors;
  * @author Rafael
  * @version 1.1
  * @created 02/10/2024
- * @updated 04/02/2025
+ * @updated 07/06/2025
  */
 public class ParlerNotificationApiImpl extends ParlerBaseApi implements ParlerNotificationApi {
     public ParlerNotificationApiImpl(String accessToken) {
@@ -40,13 +39,11 @@ public class ParlerNotificationApiImpl extends ParlerBaseApi implements ParlerNo
             this.addHeaders(request, this.accessToken);
             
             ApiResponse response = this.client.executeApiRequest(request);
+            log.debug("Response getNotificationPage: {}", response.getResponseStr());
                         
             return this.gson.fromJson(response.getResponseStr(), ParlerNotificationsResponse.class);
-        } catch (JsonSyntaxException e) {
-            logException(e);
-            throw e;
         } catch (Exception e) {
-            throw new ParlerApiException(ParlerNotificationApiImpl.class.getName(), e.getMessage());
+            throw new ParlerApiException("Error recuperando una página de notificaciones de Parler", e);
         }
     }
 

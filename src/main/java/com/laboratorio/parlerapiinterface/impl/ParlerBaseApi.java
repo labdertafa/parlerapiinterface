@@ -1,7 +1,6 @@
 package com.laboratorio.parlerapiinterface.impl;
 
 import com.google.gson.Gson;
-import com.google.gson.JsonSyntaxException;
 import com.google.gson.reflect.TypeToken;
 import com.laboratorio.clientapilibrary.ApiClient;
 import com.laboratorio.clientapilibrary.model.ApiMethodType;
@@ -23,9 +22,9 @@ import org.apache.logging.log4j.Logger;
 /**
  *
  * @author Rafael
- * @version 1.2
+ * @version 1.3
  * @created 30/09/2024
- * @updated 10/05/2025
+ * @updated 07/06/2025
  */
 public class ParlerBaseApi {
     protected static final Logger log = LogManager.getLogger(ParlerBaseApi.class);
@@ -44,13 +43,6 @@ public class ParlerBaseApi {
         this.accessToken = accessToken;
     }
 
-    protected void logException(Exception e) {
-        log.error("Error: " + e.getMessage());
-        if (e.getCause() != null) {
-            log.error("Causa: " + e.getCause().getMessage());
-        }
-    }
-    
     protected void addHeaders(ApiRequest request, String token) {
         request.addApiHeader("Content-Type", "application/json");
         request.addApiHeader("Authorization", "Bearer " + token);
@@ -72,18 +64,18 @@ public class ParlerBaseApi {
             this.addHeaders(request, this.accessToken);
             
             ApiResponse response = this.client.executeApiRequest(request);
+            log.debug("Response getAccountsDetailsById: {}", response.getResponseStr());
             
             List<ParlerGetAccountsByIdResponse> accountsByIdResponse = this.gson.fromJson(response.getResponseStr(), new TypeToken<List<ParlerGetAccountsByIdResponse>>(){}.getType());
             if (accountsByIdResponse.isEmpty()) {
-                throw new ParlerApiException(ParlerAccountApiImpl.class.getName(), "Se ha recibido una respuesta vacía consultando usuarios por Id");
+                throw new ParlerApiException("Se ha recibido una respuesta vacía consultando usuarios por Id");
             }
             
             return accountsByIdResponse.get(0).getData();
-        } catch (JsonSyntaxException e) {
-            logException(e);
+        } catch (ParlerApiException e) {
             throw e;
         } catch (Exception e) {
-            throw new ParlerApiException(ParlerAccountApiImpl.class.getName(), e.getMessage());
+            throw new ParlerApiException("Error recuperando el detalle de un listado de cuentas Parler", e);
         }
     }
     
@@ -97,13 +89,11 @@ public class ParlerBaseApi {
             this.addHeaders(request, this.accessToken);
             
             ApiResponse response = this.client.executeApiRequest(request);
+            log.debug("Response getAccountPage: {}", response.getResponseStr());
             
             return this.gson.fromJson(response.getResponseStr(), ParlerAccountListResponse.class);
-        } catch (JsonSyntaxException e) {
-            logException(e);
-            throw e;
         } catch (Exception e) {
-            throw new ParlerApiException(ParlerBaseApi.class.getName(), e.getMessage());
+            throw new ParlerApiException("Error recuperando una página de cuentas Parler: " + uri, e);
         }
     }
     

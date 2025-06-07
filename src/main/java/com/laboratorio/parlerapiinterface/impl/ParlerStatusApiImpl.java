@@ -1,7 +1,5 @@
 package com.laboratorio.parlerapiinterface.impl;
 
-import com.google.gson.JsonSyntaxException;
-import com.laboratorio.clientapilibrary.exceptions.UtilsApiException;
 import com.laboratorio.clientapilibrary.model.ApiMethodType;
 import com.laboratorio.clientapilibrary.model.ApiRequest;
 import com.laboratorio.clientapilibrary.model.ApiResponse;
@@ -29,9 +27,9 @@ import java.util.stream.Collectors;
 /**
  *
  * @author Rafael
- * @version 1.2
+ * @version 1.3
  * @created 01/10/2024
- * @updated 04/02/2024
+ * @updated 07/06/2024
  */
 public class ParlerStatusApiImpl extends ParlerBaseApi implements ParlerStatusApi {
     public ParlerStatusApiImpl(String accessToken) {
@@ -76,14 +74,12 @@ public class ParlerStatusApiImpl extends ParlerBaseApi implements ParlerStatusAp
             request.addApiHeader("Connection", "keep-alive");
             
             ApiResponse response = this.client.executeApiRequest(request);
+            log.debug("Response postStatusWithImage: {}", response.getResponseStr());
             ParlerPostResponse postResponse = this.gson.fromJson(response.getResponseStr(), ParlerPostResponse.class);
             
             return postResponse.getData();
-        } catch (JsonSyntaxException e) {
-            logException(e);
-            throw e;
         } catch (Exception e) {
-            throw new ParlerApiException(ParlerStatusApiImpl.class.getName(), e.getMessage());
+            throw new ParlerApiException("Error posteando un estado en Parler: " + text, e);
         }
     }
     
@@ -141,13 +137,8 @@ public class ParlerStatusApiImpl extends ParlerBaseApi implements ParlerStatusAp
             log.debug("Url Obtenida: " + response3.getResponseStr());
             
             return this.gson.fromJson(response3.getResponseStr(), ParlerImageUploadResponse.class);
-        } catch (JsonSyntaxException e) {
-            logException(e);
-            throw e;
-        } catch (UtilsApiException e) {
-            throw e;
         } catch (Exception e) {
-            throw new ParlerApiException(ParlerStatusApiImpl.class.getName(), e.getMessage());
+            throw new ParlerApiException("Error subiendo una imagen a Parler: " + filePath, e);
         }
     }   
 
@@ -163,14 +154,12 @@ public class ParlerStatusApiImpl extends ParlerBaseApi implements ParlerStatusAp
             this.addHeaders(request, this.accessToken);
             
             ApiResponse response = this.client.executeApiRequest(request);
+            log.debug("Response deleteStatus: {}", response.getResponseStr());
             ParlerActionResponse actionResponse = this.gson.fromJson(response.getResponseStr(), ParlerActionResponse.class);
             
             return actionResponse.isSuccess();
-        } catch (JsonSyntaxException e) {
-            logException(e);
-            throw e;
         } catch (Exception e) {
-            throw new ParlerApiException(ParlerStatusApiImpl.class.getName(), e.getMessage());
+            throw new ParlerApiException("Error eliminado el estado Parler con id: " + id, e);
         }
     }
     
@@ -184,13 +173,11 @@ public class ParlerStatusApiImpl extends ParlerBaseApi implements ParlerStatusAp
             this.addHeaders(request, this.accessToken);
             
             ApiResponse response = this.client.executeApiRequest(request);
+            log.debug("Response getTimelinePage: {}", response.getResponseStr());
                         
             return this.gson.fromJson(response.getResponseStr(), ParlerTimeLineResponse.class);
-        } catch (JsonSyntaxException e) {
-            logException(e);
-            throw e;
         } catch (Exception e) {
-            throw new ParlerApiException(ParlerNotificationApiImpl.class.getName(), e.getMessage());
+            throw new ParlerApiException("Error recuperando una página del Timeline de Parler", e);
         }
     }
 
@@ -248,29 +235,23 @@ public class ParlerStatusApiImpl extends ParlerBaseApi implements ParlerStatusAp
             this.addHeaders(request, this.accessToken);
             
             ApiResponse response = this.client.executeApiRequest(request);
+            log.debug("Response getStatusDetails: {}", response.getResponseStr());
             ParlerStatusDetailsResponse statusDetailsResponse = this.gson.fromJson(response.getResponseStr(), ParlerStatusDetailsResponse.class);
             
             return statusDetailsResponse.getData();
-        } catch (JsonSyntaxException e) {
-            logException(e);
-            throw e;
         } catch (Exception e) {
-            throw new ParlerApiException(ParlerStatusApiImpl.class.getName(), e.getMessage());
+            throw new ParlerApiException("Error recuperando el detalle de un listado de estado Parler", e);
         }
     }
 
     @Override
     public List<ParlerStatus> getGlobalTimeline(int quantity) {
-        try {
-            List<ParlerStatusHeader> headers = this.getGlobalTimeLineHeaders(quantity);
-            
-            List<String> ulids = headers.stream()
-                .map(h -> h.getUlid())
-                .collect(Collectors.toList());
-        
-            return this.getStatusDetails(ulids);
-        } catch (Exception e) {
-            throw e;
-        }
+        List<ParlerStatusHeader> headers = this.getGlobalTimeLineHeaders(quantity);
+
+        List<String> ulids = headers.stream()
+            .map(h -> h.getUlid())
+            .collect(Collectors.toList());
+
+        return this.getStatusDetails(ulids);
     }
 }
