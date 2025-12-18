@@ -22,9 +22,9 @@ import org.apache.logging.log4j.Logger;
 /**
  *
  * @author Rafael
- * @version 1.3
+ * @version 1.4
  * @created 30/09/2024
- * @updated 07/06/2025
+ * @updated 18/12/2025
  */
 public class ParlerBaseApi {
     protected static final Logger log = LogManager.getLogger(ParlerBaseApi.class);
@@ -35,8 +35,17 @@ public class ParlerBaseApi {
 
     public ParlerBaseApi() {
         this.apiConfig = new ReaderConfig("config//parler_api.properties");
-        this.client = new ApiClient();
         this.gson = new Gson();
+        String proxyHost = this.apiConfig.getProperty("parler_proxy_host");
+        String proxyPortStr = this.apiConfig.getProperty("parler_proxy_port");
+        String certificatePath = this.apiConfig.getProperty("parler_proxy_certificate");
+        if (proxyHost != null && !proxyHost.isBlank() && proxyPortStr != null && !proxyPortStr.isBlank()
+                && certificatePath != null && !certificatePath.isBlank()) {
+            int proxyPort = Integer.parseInt(proxyPortStr);
+            this.client = new ApiClient(proxyHost, proxyPort, certificatePath);
+        } else {
+            this.client = new ApiClient();
+        }
     }
 
     public void setAccessToken(String accessToken) {
@@ -97,53 +106,55 @@ public class ParlerBaseApi {
         }
     }
     
+    private boolean isContinuar(int quantity, List<ParlerAccount> accounts, String cursor) {
+        log.debug("Cantidad: " + quantity + ". Recuperados: " + accounts.size() + ". Cursor: " + cursor);
+        if (quantity > 0) {
+            if ((accounts.size() >= quantity) || (cursor == null)) {
+                return false;
+            }
+        } else {
+            if (cursor == null) {
+                return false;
+            }
+        }
+        
+        return true;
+    }
+    
     protected ParlerAccountList getAccountList(String uri, int okStatus, int quantity, String posicionInicial) {
         List<ParlerAccount> accounts = null;
-        boolean continuar = true;
+        boolean continuar;
         String cursor = posicionInicial;
         
-        try {
-            do {
-                ParlerAccountListResponse accountListResponse = this.getAccountPage(uri, okStatus, cursor);
-                
-                // Se obtienen los detalles de los usuarios
-                List<String> ids = accountListResponse.getData().stream()
-                                .map(user -> user.getUlid())
-                                .collect(Collectors.toList());
-                List<ParlerAccount> usersDetails;
-                if (!ids.isEmpty()) {
-                    usersDetails = this.getAccountsDetailsById(ids);
-                } else {
-                    usersDetails = new ArrayList<>();
-                }
-                
-                if (accounts == null) {
-                    accounts = usersDetails;
-                } else {
-                    accounts.addAll(usersDetails);
-                }
-                
-                cursor = accountListResponse.getNext_cursor();
-                log.debug("Cantidad: " + quantity + ". Recuperados: " + accounts.size() + ". Cursor: " + cursor);
-                if (quantity > 0) {
-                    if ((accounts.size() >= quantity) || (cursor == null)) {
-                        continuar = false;
-                    }
-                } else {
-                    if (cursor == null) {
-                        continuar = false;
-                    }
-                }
-            } while (continuar);
+        do {
+            ParlerAccountListResponse accountListResponse = this.getAccountPage(uri, okStatus, cursor);
 
-            if (quantity == 0) {
-                return new ParlerAccountList(accounts, cursor);
+            // Se obtienen los detalles de los usuarios
+            List<String> ids = accountListResponse.getData().stream()
+                            .map(user -> user.getUlid())
+                            .collect(Collectors.toList());
+            List<ParlerAccount> usersDetails;
+            if (!ids.isEmpty()) {
+                usersDetails = this.getAccountsDetailsById(ids);
+            } else {
+                usersDetails = new ArrayList<>();
             }
-            
-            return new ParlerAccountList(accounts.subList(0, Math.min(quantity, accounts.size())), cursor);
-        } catch (Exception e) {
-            throw e;
+
+            if (accounts == null) {
+                accounts = usersDetails;
+            } else {
+                accounts.addAll(usersDetails);
+            }
+
+            cursor = accountListResponse.getNext_cursor();
+            continuar = this.isContinuar(quantity, accounts, cursor);
+        } while (continuar);
+
+        if (quantity == 0) {
+            return new ParlerAccountList(accounts, cursor);
         }
+
+        return new ParlerAccountList(accounts.subList(0, Math.min(quantity, accounts.size())), cursor);
     }
     
     protected List<String> getAccountIdsList(String uri, int okStatus) {
@@ -151,30 +162,26 @@ public class ParlerBaseApi {
         boolean continuar = true;
         String cursor = null;
         
-        try {
-            do {
-                ParlerAccountListResponse accountListResponse = this.getAccountPage(uri, okStatus, cursor);
-                
-                // Se obtienen los detalles de los usuarios
-                List<String> ids = accountListResponse.getData().stream()
-                                .map(user -> user.getUlid())
-                                .collect(Collectors.toList());
-                if (accountIds == null) {
-                    accountIds = ids;
-                } else {
-                    accountIds.addAll(ids);
-                }
-                
-                cursor = accountListResponse.getNext_cursor();
-                log.debug("Recuperados: " + accountIds.size() + ". Cursor: " + cursor);
-                if (cursor == null) {
-                    continuar = false;
-                }
-            } while (continuar);
+        do {
+            ParlerAccountListResponse accountListResponse = this.getAccountPage(uri, okStatus, cursor);
 
-            return accountIds;
-        } catch (Exception e) {
-            throw e;
-        }
+            // Se obtienen los detalles de los usuarios
+            List<String> ids = accountListResponse.getData().stream()
+                            .map(user -> user.getUlid())
+                            .collect(Collectors.toList());
+            if (accountIds == null) {
+                accountIds = ids;
+            } else {
+                accountIds.addAll(ids);
+            }
+
+            cursor = accountListResponse.getNext_cursor();
+            log.debug("Recuperados: " + accountIds.size() + ". Cursor: " + cursor);
+            if (cursor == null) {
+                continuar = false;
+            }
+        } while (continuar);
+
+        return accountIds;
     }
 }

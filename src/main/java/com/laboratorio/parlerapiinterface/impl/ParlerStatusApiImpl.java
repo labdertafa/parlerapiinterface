@@ -27,9 +27,9 @@ import java.util.stream.Collectors;
 /**
  *
  * @author Rafael
- * @version 1.3
+ * @version 1.4
  * @created 01/10/2024
- * @updated 07/06/2024
+ * @updated 18/12/2025
  */
 public class ParlerStatusApiImpl extends ParlerBaseApi implements ParlerStatusApi {
     public ParlerStatusApiImpl(String accessToken) {
@@ -44,12 +44,8 @@ public class ParlerStatusApiImpl extends ParlerBaseApi implements ParlerStatusAp
 
     @Override
     public ParlerStatus postStatus(String text, String imagePath) {
-        try {
-            ParlerImageUploadResponse image = this.uploadImage(imagePath);
-            return postStatusWithImage(text, image);
-        } catch (Exception e) {
-            throw  e;
-        }
+        ParlerImageUploadResponse image = this.uploadImage(imagePath);
+        return postStatusWithImage(text, image);
     }
 
     @Override
@@ -189,33 +185,28 @@ public class ParlerStatusApiImpl extends ParlerBaseApi implements ParlerStatusAp
         List<ParlerStatusHeader> headers = null;
         boolean continuar = true;
         String cursor = null;
-        
-        try {
-            String uri = endpoint;
-            
-            do {
-                ParlerTimeLineResponse timeLineResponse = this.getTimelinePage(uri, okStatus, cursor);
-                if (headers == null) {
-                    headers = timeLineResponse.getData();
-                } else {
-                    headers.addAll(timeLineResponse.getData());
-                }
-                
-                cursor = timeLineResponse.getNext_cursor();
-                log.debug("getGlobalTimeLineHeaders. Recuperados: " + headers.size() + ". Cursor: " + cursor);
-                if (timeLineResponse.getData().isEmpty()) {
+        String uri = endpoint;
+
+        do {
+            ParlerTimeLineResponse timeLineResponse = this.getTimelinePage(uri, okStatus, cursor);
+            if (headers == null) {
+                headers = timeLineResponse.getData();
+            } else {
+                headers.addAll(timeLineResponse.getData());
+            }
+
+            cursor = timeLineResponse.getNext_cursor();
+            log.debug("getGlobalTimeLineHeaders. Recuperados: " + headers.size() + ". Cursor: " + cursor);
+            if (timeLineResponse.getData().isEmpty()) {
+                continuar = false;
+            } else {
+                if ((cursor == null) || (headers.size() >= quantity)) {
                     continuar = false;
-                } else {
-                    if ((cursor == null) || (headers.size() >= quantity)) {
-                        continuar = false;
-                    }
                 }
-            } while (continuar);
-            
-            return headers.subList(0, Math.min(quantity, headers.size()));
-        } catch (Exception e) {
-            throw e;
-        }
+            }
+        } while (continuar);
+
+        return headers.subList(0, Math.min(quantity, headers.size()));
     }
 
     @Override

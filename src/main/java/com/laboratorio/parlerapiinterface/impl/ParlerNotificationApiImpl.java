@@ -14,9 +14,9 @@ import java.util.stream.Collectors;
 /**
  *
  * @author Rafael
- * @version 1.1
+ * @version 1.2
  * @created 02/10/2024
- * @updated 07/06/2025
+ * @updated 18/12/2025
  */
 public class ParlerNotificationApiImpl extends ParlerBaseApi implements ParlerNotificationApi {
     public ParlerNotificationApiImpl(String accessToken) {
@@ -46,6 +46,30 @@ public class ParlerNotificationApiImpl extends ParlerBaseApi implements ParlerNo
             throw new ParlerApiException("Error recuperando una página de notificaciones de Parler", e);
         }
     }
+    
+    private boolean isContinuar(List<ParlerNotification> notifications, String cursor,
+            ParlerNotificationsResponse notificationsResponse, String posicionInicial) {
+        log.debug("getAllNotifications. Recuperados: " + notifications.size() + ". Cursor: " + cursor);
+        if (notificationsResponse.getData().isEmpty()) {
+            return false;
+        } else {
+            if (cursor == null) {
+                return false;
+            }
+
+            if (posicionInicial != null) {
+                List<ParlerNotification> list = notificationsResponse.getData();
+                for (int i = list.size() - 1; i >= 0; i--) {
+                    String notiftime = list.get(i).getCreatedAt();
+                    if (notiftime.compareTo(posicionInicial) <= 0) {
+                        return false;
+                    }
+                }
+            }
+        }
+            
+        return true;
+    }
 
     @Override
     public ParlerNotificationList getAllNotifications(String posicionInicial) throws Exception {
@@ -54,56 +78,33 @@ public class ParlerNotificationApiImpl extends ParlerBaseApi implements ParlerNo
         String nuevaPosicionInicial = posicionInicial;
         
         List<ParlerNotification> notifications = null;
-        boolean continuar = true;
+        boolean continuar;
         String cursor = null;
-        
-        try {
-            String uri = endpoint;
-            
-            do {
-                ParlerNotificationsResponse notificationsResponse = this.getNotificationPage(uri, okStatus, cursor);
-                if (notifications == null) {
-                    if (!notificationsResponse.getData().isEmpty()) {
-                        nuevaPosicionInicial = notificationsResponse.getData().get(0).getCreatedAt();
-                    }
-                    notifications = notificationsResponse.getData();
-                } else {
-                    notifications.addAll(notificationsResponse.getData());
+        String uri = endpoint;
+
+        do {
+            ParlerNotificationsResponse notificationsResponse = this.getNotificationPage(uri, okStatus, cursor);
+            if (notifications == null) {
+                if (!notificationsResponse.getData().isEmpty()) {
+                    nuevaPosicionInicial = notificationsResponse.getData().get(0).getCreatedAt();
                 }
-                
-                cursor = notificationsResponse.getNext_cursor();
-                log.debug("getAllNotifications. Recuperados: " + notifications.size() + ". Cursor: " + cursor);
-                if (notificationsResponse.getData().isEmpty()) {
-                    continuar = false;
-                } else {
-                    if (cursor == null) {
-                        continuar = false;
-                    }
-                    
-                    if (posicionInicial != null) {
-                        List<ParlerNotification> list = notificationsResponse.getData();
-                        for (int i = list.size() - 1; i >= 0; i--) {
-                            String notiftime = list.get(i).getCreatedAt();
-                            if (notiftime.compareTo(posicionInicial) <= 0) {
-                                continuar = false;
-                                break;
-                            }
-                        }
-                    }
-                }
-            } while (continuar);
-            
-            if (posicionInicial == null) {
-                return new ParlerNotificationList(notifications, nuevaPosicionInicial);
+                notifications = notificationsResponse.getData();
+            } else {
+                notifications.addAll(notificationsResponse.getData());
             }
-            
-            List<ParlerNotification> filtredNotifications = notifications.stream()
-                    .filter(n -> n.getCreatedAt().compareTo(posicionInicial) > 0)
-                    .collect(Collectors.toList());
-            log.debug("filtredNotificationsList size: " + filtredNotifications.size() + "nueva posición inicial: " + nuevaPosicionInicial);
-            return new ParlerNotificationList(filtredNotifications, nuevaPosicionInicial);
-        } catch (Exception e) {
-            throw e;
+
+            cursor = notificationsResponse.getNext_cursor();
+            continuar = this.isContinuar(notifications, cursor, notificationsResponse, posicionInicial);
+        } while (continuar);
+
+        if (posicionInicial == null) {
+            return new ParlerNotificationList(notifications, nuevaPosicionInicial);
         }
+
+        List<ParlerNotification> filtredNotifications = notifications.stream()
+                .filter(n -> n.getCreatedAt().compareTo(posicionInicial) > 0)
+                .collect(Collectors.toList());
+        log.debug("filtredNotificationsList size: " + filtredNotifications.size() + "nueva posición inicial: " + nuevaPosicionInicial);
+        return new ParlerNotificationList(filtredNotifications, nuevaPosicionInicial);
     }
 }
